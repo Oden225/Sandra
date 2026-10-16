@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculette de Sandra</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout : une colonne étroite, comme une fiche de facturation — saisie en haut, répartition juste en dessous, liste du patient en bas. */
+:root {
+  --bg: #eef3f2;
+  --paper: #ffffff;
+  --ink: #15303a;
+  --muted: #5b7079;
+  --line: #d3dfdd;
+  --insurer: #1f7a6d;
+  --insurer-soft: #d9efe9;
+  --patient: #c0561f;
+  --patient-soft: #f8e4d8;
+  --focus: #2563a8;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1c20; --paper: #172a30; --ink: #e4eeec; --muted: #9bb0b5; --line: #2a4148;
+    --insurer: #4fc0ad; --insurer-soft: #173e39; --patient: #f0915c; --patient-soft: #43281a;
+    --focus: #7fb2ec; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1c20; --paper: #172a30; --ink: #e4eeec; --muted: #9bb0b5; --line: #2a4148;
+  --insurer: #4fc0ad; --insurer-soft: #173e39; --patient: #f0915c; --patient-soft: #43281a;
+  --focus: #7fb2ec; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 1rem/1.5 var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+.wrap {
+  max-width: 34rem; margin: 0 auto;
+  padding-block: 1.5rem 3rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 1.25rem;
+}
+header h1 {
+  font: 700 1.75rem/1.1 var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em;
+}
+header p { margin: .35rem 0 0; color: var(--muted); }
+
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem; display: grid; gap: 1rem; }
+label, .label { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.field { display: grid; gap: .45rem; }
+.input-row { display: flex; align-items: center; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); }
+.input-row:focus-within { border-color: var(--focus); }
+.input-row input {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+  font: 700 1.6rem/1 var(--font-display); padding: .7rem .8rem; outline: none;
+}
+.input-row input#assureur { font: 400 1.05rem/1.3 var(--font-body); }
+.input-row .unit { padding-right: .9rem; color: var(--muted); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip {
+  font: 700 .95rem/1 var(--font-body); color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: .55rem .85rem; cursor: pointer;
+}
+.chip:hover { border-color: var(--insurer); }
+.chip[aria-pressed="true"] { background: var(--insurer); border-color: var(--insurer); color: var(--paper); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.result { display: grid; gap: .9rem; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.part { border-radius: 12px; padding: .9rem; display: grid; gap: .2rem; min-width: 0; }
+.part.ins { background: var(--insurer-soft); }
+.part.pat { background: var(--patient-soft); }
+.part .who { font-size: .82rem; font-weight: 700; }
+.part.ins .who { color: var(--insurer); }
+.part.pat .who { color: var(--patient); }
+.part .amount { font: 700 clamp(1.5rem, 7vw, 2.1rem)/1.1 var(--font-display); overflow-wrap: anywhere; }
+.part .pct { color: var(--muted); font-size: .9rem; }
+.bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--patient); }
+.bar span { background: var(--insurer); transition: width .25s ease; }
+.detail { margin: 0; color: var(--muted); font-size: .92rem; }
+.detail b { color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.btn {
+  font: 700 1rem/1 var(--font-body); border-radius: 10px; padding: .8rem 1rem; cursor: pointer;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.toast { color: var(--insurer); font-weight: 700; font-size: .9rem; align-self: center; }
+
+.list h2 { font: 700 1.15rem/1.2 var(--font-display); margin: 0; }
+.list-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { text-align: right; padding: .5rem .35rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+th { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.ins { color: var(--insurer); font-weight: 700; }
+td.pat { color: var(--patient); font-weight: 700; }
+tfoot td { border-bottom: 0; font-weight: 700; padding-top: .7rem; }
+.del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 0 .2rem; }
+.empty { color: var(--muted); margin: 0; }
+.err { color: var(--patient); font-size: .9rem; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Calculette de Sandra</h1>
+    <p>Saisis le montant et le taux de prise en charge : la part de l'assurance et la part de l'adhérent s'affichent tout de suite.</p>
+  </header>
+
+  <section class="card" aria-label="Saisie">
+    <div class="field">
+      <label for="montant">Montant de l'acte</label>
+      <div class="input-row">
+        <input id="montant" inputmode="numeric" autocomplete="off" value="8 000" aria-describedby="montant-unit">
+        <span class="unit" id="montant-unit">FCFA</span>
+      </div>
+      <div class="chips" id="montants" aria-label="Montants fréquents">
+        <button type="button" class="chip" data-amount="5000">5 000</button>
+        <button type="button" class="chip" data-amount="8000">8 000</button>
+        <button type="button" class="chip" data-amount="10000">10 000</button>
+        <button type="button" class="chip" data-amount="15000">15 000</button>
+        <button type="button" class="chip" data-amount="25000">25 000</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="taux">Taux pris en charge par l'assurance</label>
+      <div class="input-row">
+        <input id="taux" inputmode="decimal" autocomplete="off" value="80">
+        <span class="unit">%</span>
+      </div>
+      <div class="chips" id="taux-chips" aria-label="Taux fréquents">
+        <button type="button" class="chip" data-rate="50">50 %</button>
+        <button type="button" class="chip" data-rate="60">60 %</button>
+        <button type="button" class="chip" data-rate="70">70 %</button>
+        <button type="button" class="chip" data-rate="75">75 %</button>
+        <button type="button" class="chip" data-rate="80">80 %</button>
+        <button type="button" class="chip" data-rate="85">85 %</button>
+        <button type="button" class="chip" data-rate="90">90 %</button>
+        <button type="button" class="chip" data-rate="100">100 %</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="assureur">Assurance ou patient (facultatif)</label>
+      <div class="input-row">
+        <input id="assureur" autocomplete="off" placeholder="ex. Consultation — Mme Kouassi">
+      </div>
+    </div>
+  </section>
+
+  <section class="card result" aria-live="polite" aria-label="Résultat">
+    <p class="err" id="err" hidden></p>
+    <div class="split">
+      <div class="part ins">
+        <span class="who">Part assurance</span>
+        <span class="amount" id="r-ins">6 400</span>
+        <span class="pct" id="r-ins-pct">80 %</span>
+      </div>
+      <div class="part pat">
+        <span class="who">Part adhérent</span>
+        <span class="amount" id="r-pat">1 600</span>
+        <span class="pct" id="r-pat-pct">20 %</span>
+      </div>
+    </div>
+    <div class="bar" aria-hidden="true"><span id="bar" style="width:80%"></span></div>
+    <p class="detail" id="detail">8 000 × 80 % = <b>6 400</b> pour l'assurance · 8 000 − 6 400 = <b>1 600</b> à payer par l'adhérent</p>
+    <div class="actions">
+      <button type="button" class="btn" id="add">Ajouter à la liste</button>
+      <button type="button" class="btn ghost" id="copy">Copier le résultat</button>
+      <span class="toast" id="toast" role="status"></span>
+    </div>
+  </section>
+
+  <section class="card list" aria-label="Liste des actes">
+    <div class="list-head">
+      <h2>Liste des actes</h2>
+      <button type="button" class="btn ghost" id="clear">Vider la liste</button>
+    </div>
+    <p class="empty" id="empty">Aucun acte pour l'instant. Appuie sur « Ajouter à la liste » pour additionner plusieurs actes (consultation, analyses, médicaments…).</p>
+    <div class="table-wrap" id="table-wrap" hidden>
+      <table>
+        <thead><tr><th>Acte</th><th>Montant</th><th>Taux</th><th>Assurance</th><th>Adhérent</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot><tr><td>Total</td><td id="t-amt"></td><td></td><td class="ins" id="t-ins"></td><td class="pat" id="t-pat"></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+  var fmtPct = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
+  var KEY = 'calculette-sandra-liste';
+  var items = [];
+  try { items = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { items = []; }
+
+  function parseNum(s) {
+    var clean = String(s).replace(/[\s  ]/g, '').replace(',', '.');
+    if (clean === '') return NaN;
+    return Number(clean);
+  }
+
+  // Calcul : la part assurance est arrondie au franc, la part adhérent est le reste,
+  // ainsi les deux parts font toujours exactement le montant total.
+  function compute(amount, rate) {
+    var ins = Math.round(amount * rate / 100);
+    return { ins: ins, pat: amount - ins };
+  }
+
+  function current() {
+    var amount = parseNum($('montant').value);
+    var rate = parseNum($('taux').value);
+    if (!isFinite(amount) || amount < 0) return { error: 'Le montant doit être un nombre positif, par exemple 8000.' };
+    if (!isFinite(rate) || rate < 0 || rate > 100) return { error: 'Le taux doit être compris entre 0 et 100 %.' };
+    var r = compute(Math.round(amount), rate);
+    return { amount: Math.round(amount), rate: rate, ins: r.ins, pat: r.pat };
+  }
+
+  function syncChips(c) {
+    document.querySelectorAll('[data-rate]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(c.rate === Number(b.dataset.rate)));
+    });
+    document.querySelectorAll('[data-amount]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(c.amount === Number(b.dataset.amount)));
+    });
+  }
+
+  function render() {
+    var c = current();
+    var bad = !!c.error;
+    $('err').hidden = !bad;
+    $('err').textContent = c.error || '';
+    $('add').disabled = bad;
+    $('copy').disabled = bad;
+    if (bad) {
+      ['r-ins', 'r-pat'].forEach(function (id) { $(id).textContent = '—'; });
+      $('detail').textContent = '';
+      return;
+    }
+    syncChips(c);
+    $('r-ins').textContent = fmt.format(c.ins);
+    $('r-pat').textContent = fmt.format(c.pat);
+    $('r-ins-pct').textContent = fmtPct.format(c.rate) + ' %';
+    $('r-pat-pct').textContent = fmtPct.format(100 - c.rate) + ' %';
+    $('bar').style.width = c.rate + '%';
+    $('detail').innerHTML =
+      fmt.format(c.amount) + ' × ' + fmtPct.format(c.rate) + ' % = <b>' + fmt.format(c.ins) +
+      '</b> pour l\'assurance · ' + fmt.format(c.amount) + ' − ' + fmt.format(c.ins) +
+      ' = <b>' + fmt.format(c.pat) + '</b> à payer par l\'adhérent';
+  }
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function renderList() {
+    var has = items.length > 0;
+    $('empty').hidden = has;
+    $('table-wrap').hidden = !has;
+    $('clear').hidden = !has;
+    var tA = 0, tI = 0, tP = 0;
+    $('rows').innerHTML = items.map(function (it, i) {
+      tA += it.amount; tI += it.ins; tP += it.pat;
+      return '<tr><td>' + esc(it.label || ('Acte ' + (i + 1))) + '</td><td>' + fmt.format(it.amount) +
+        '</td><td>' + fmtPct.format(it.rate) + ' %</td><td class="ins">' + fmt.format(it.ins) +
+        '</td><td class="pat">' + fmt.format(it.pat) +
+        '</td><td><button type="button" class="del" data-del="' + i + '" aria-label="Retirer cette ligne">×</button></td></tr>';
+    }).join('');
+    $('t-amt').textContent = fmt.format(tA);
+    $('t-ins').textContent = fmt.format(tI);
+    $('t-pat').textContent = fmt.format(tP);
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('toast').textContent = ''; }, 2000);
+  }
+
+  // Met des espaces entre les milliers pendant la saisie du montant.
+  $('montant').addEventListener('input', function (e) {
+    var digits = e.target.value.replace(/\D/g, '');
+    e.target.value = digits ? fmt.format(Number(digits)) : '';
+    render();
+  });
+  $('taux').addEventListener('input', render);
+
+  $('montants').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-amount]'); if (!b) return;
+    $('montant').value = fmt.format(Number(b.dataset.amount)); render();
+  });
+  $('taux-chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rate]'); if (!b) return;
+    $('taux').value = b.dataset.rate; render();
+  });
+
+  $('add').addEventListener('click', function () {
+    var c = current(); if (c.error) return;
+    items.push({ label: $('assureur').value.trim(), amount: c.amount, rate: c.rate, ins: c.ins, pat: c.pat });
+    save(); renderList(); toast('Ajouté à la liste');
+  });
+
+  $('copy').addEventListener('click', function () {
+    var c = current(); if (c.error) return;
+    var label = $('assureur').value.trim();
+    var text = (label ? label + ' : ' : '') + 'Montant ' + fmt.format(c.amount) + ' FCFA — Assurance ' +
+      fmtPct.format(c.rate) + ' % = ' + fmt.format(c.ins) + ' FCFA — Adhérent ' +
+      fmtPct.format(100 - c.rate) + ' % = ' + fmt.format(c.pat) + ' FCFA';
+    function fallback() { $('detail').textContent = text; var r = document.createRange(); r.selectNodeContents($('detail')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Texte sélectionné, copie-le'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast('Copié'); }, fallback);
+    } else { fallback(); }
+  });
+
+  $('rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-del]'); if (!b) return;
+    items.splice(Number(b.dataset.del), 1); save(); renderList();
+  });
+
+  var confirmPending = false;
+  $('clear').addEventListener('click', function () {
+    if (!confirmPending) {
+      confirmPending = true; $('clear').textContent = 'Confirmer : tout effacer';
+      setTimeout(function () { confirmPending = false; $('clear').textContent = 'Vider la liste'; }, 3000);
+      return;
+    }
+    confirmPending = false; $('clear').textContent = 'Vider la liste';
+    items = []; save(); renderList(); toast('Liste vidée');
+  });
+
+  render(); renderList();
+})();
+</script>
+</body>
+</html>
