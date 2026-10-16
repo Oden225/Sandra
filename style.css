@@ -1,0 +1,152 @@
+/* Layout : une colonne étroite façon fiche de facturation, trois écrans (Calcul, Historique, Assurances) et une barre d'onglets en bas comme une appli. */
+:root {
+  --bg: #eef3f2;
+  --paper: #ffffff;
+  --ink: #15303a;
+  --muted: #5b7079;
+  --line: #d3dfdd;
+  --insurer: #1f7a6d;
+  --insurer-soft: #d9efe9;
+  --patient: #c0561f;
+  --patient-soft: #f8e4d8;
+  --focus: #2563a8;
+  --on-accent: #ffffff;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --nav-h: 4rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1c20; --paper: #172a30; --ink: #e4eeec; --muted: #9bb0b5; --line: #2a4148;
+    --insurer: #4fc0ad; --insurer-soft: #173e39; --patient: #f0915c; --patient-soft: #43281a;
+    --focus: #7fb2ec; --on-accent: #0f1c20; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1c20; --paper: #172a30; --ink: #e4eeec; --muted: #9bb0b5; --line: #2a4148;
+  --insurer: #4fc0ad; --insurer-soft: #173e39; --patient: #f0915c; --patient-soft: #43281a;
+  --focus: #7fb2ec; --on-accent: #0f1c20; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 1rem/1.5 var(--font-body);
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap {
+  max-width: 34rem; margin: 0 auto;
+  padding-block: 1.25rem calc(var(--nav-h) + 2rem + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 1.25rem;
+}
+header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+header h1 { font: 700 1.6rem/1.1 var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+header .today { color: var(--muted); font-size: .9rem; margin: .2rem 0 0; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+h2 { font: 700 1.15rem/1.2 var(--font-display); margin: 0; }
+
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; min-width: 0; }
+label, .label { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: .45rem; min-width: 0; }
+.hint { margin: 0; color: var(--muted); font-size: .88rem; }
+.input-row { display: flex; align-items: center; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); }
+.input-row:focus-within { border-color: var(--focus); }
+.input-row input, .input-row select {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+  font: 700 1.6rem/1 var(--font-display); padding: .7rem .8rem; outline: none;
+}
+.input-row.text input, .input-row select { font: 400 1.05rem/1.3 var(--font-body); padding: .8rem; }
+.input-row select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.input-row .unit { padding-right: .9rem; color: var(--muted); font-weight: 700; }
+.input-row .caret { padding-right: .9rem; color: var(--muted); pointer-events: none; }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip {
+  font: 700 .95rem/1 var(--font-body); color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: .55rem .85rem; cursor: pointer;
+}
+.chip:hover { border-color: var(--insurer); }
+.chip[aria-pressed="true"] { background: var(--insurer); border-color: var(--insurer); color: var(--on-accent); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.part { border-radius: 12px; padding: .9rem; display: grid; gap: .2rem; min-width: 0; }
+.part.ins { background: var(--insurer-soft); }
+.part.pat { background: var(--patient-soft); }
+.part .who { font-size: .82rem; font-weight: 700; }
+.part.ins .who { color: var(--insurer); }
+.part.pat .who { color: var(--patient); }
+.part .amount { font: 700 clamp(1.5rem, 7vw, 2.1rem)/1.1 var(--font-display); overflow-wrap: anywhere; }
+.part .pct { color: var(--muted); font-size: .9rem; }
+.bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--patient); }
+.bar span { background: var(--insurer); transition: width .25s ease; }
+.detail { margin: 0; color: var(--muted); font-size: .92rem; }
+.detail b { color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.btn {
+  font: 700 1rem/1 var(--font-body); border-radius: 10px; padding: .8rem 1rem; cursor: pointer;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.small { padding: .55rem .8rem; font-size: .9rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.toast { color: var(--insurer); font-weight: 700; font-size: .9rem; }
+.err { color: var(--patient); font-size: .9rem; margin: 0; }
+.empty { color: var(--muted); margin: 0; }
+
+/* Historique */
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.date-nav { display: flex; align-items: center; gap: .4rem; }
+.date-nav input { font: 700 1rem/1 var(--font-body); color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 10px; padding: .5rem .6rem; }
+.totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+.total { display: grid; gap: .1rem; }
+.total .v { font: 700 1.35rem/1.2 var(--font-display); overflow-wrap: anywhere; }
+.total.ins .v { color: var(--insurer); }
+.total.pat .v { color: var(--patient); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { text-align: right; padding: .5rem .35rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+th { white-space: normal; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.ins { color: var(--insurer); font-weight: 700; }
+td.pat { color: var(--patient); font-weight: 700; }
+.entries { list-style: none; margin: 0; padding: 0; display: grid; }
+.entry { display: grid; grid-template-columns: 1fr auto; gap: .15rem .6rem; padding: .7rem 0; border-bottom: 1px solid var(--line); }
+.entry:last-child { border-bottom: 0; }
+.entry .t { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.entry .meta { color: var(--muted); font-size: .85rem; grid-column: 1; }
+.entry .nums { grid-column: 1 / -1; display: flex; gap: .9rem; flex-wrap: wrap; font-size: .92rem; }
+.entry .nums .ins { color: var(--insurer); font-weight: 700; }
+.entry .nums .pat { color: var(--patient); font-weight: 700; }
+.icon-btn { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.25rem; line-height: 1; padding: .25rem .4rem; border-radius: 8px; }
+.icon-btn:hover { color: var(--patient); }
+
+/* Assurances */
+.ins-form { display: grid; grid-template-columns: minmax(0, 1fr) 7rem; gap: .6rem; align-items: end; }
+.ins-form .btn { grid-column: 1 / -1; }
+.ins-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ins-item { display: flex; align-items: center; gap: .6rem; padding: .6rem 0; border-bottom: 1px solid var(--line); }
+.ins-item:last-child { border-bottom: 0; }
+.ins-item .name { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.ins-item .rate { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
+.ins-item .rate input { width: 4.2rem; font: 700 1rem/1 var(--font-body); color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 8px; padding: .45rem .5rem; text-align: right; }
+
+/* Barre d'onglets */
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--paper); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+nav.tabs .inner { max-width: 34rem; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); height: var(--nav-h); }
+nav.tabs button {
+  background: none; border: 0; cursor: pointer; color: var(--muted);
+  font: 700 .82rem/1.1 var(--font-body); display: grid; place-items: center; align-content: center; gap: .25rem;
+}
+nav.tabs button svg { width: 22px; height: 22px; }
+nav.tabs button[aria-selected="true"] { color: var(--insurer); }
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
