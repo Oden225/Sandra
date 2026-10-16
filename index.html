@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calculette de Sandra</title>
 <meta name="description" content="Part de l'assurance et part de l'adhérent, en FCFA.">
-<meta name="theme-color" content="#1f7a6d">
+<meta name="theme-color" content="#e6e8ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121316" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,7 +16,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -25,11 +26,35 @@
       <h1>Calculette de Sandra</h1>
       <p class="today" id="today"></p>
     </div>
-    <button type="button" class="btn small" id="install" hidden>Installer l'appli</button>
+    <button type="button" class="btn small primary" id="install" hidden>Installer</button>
+    <button type="button" class="icon-key" id="theme" aria-label="Thème : automatique">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>
+    </button>
   </header>
 
   <!-- ÉCRAN CALCUL -->
   <section class="view" id="view-calcul" aria-label="Calcul">
+    <div class="card display" aria-live="polite" aria-label="Résultat">
+      <p class="err" id="err" hidden></p>
+      <p class="expr" id="expr">8 000 × 80 %</p>
+      <div class="split">
+        <div class="part ins">
+          <span class="who">Assurance <span class="pct" id="r-ins-pct">80 %</span></span>
+          <span class="amount" id="r-ins">6 400</span>
+        </div>
+        <div class="part pat">
+          <span class="who">Adhérent <span class="pct" id="r-pat-pct">20 %</span></span>
+          <span class="amount" id="r-pat">1 600</span>
+        </div>
+      </div>
+      <div class="bar" aria-hidden="true"><span id="bar" style="width:80%"></span></div>
+      <p class="detail" id="detail"></p>
+      <div class="actions">
+        <button type="button" class="btn primary" id="save">Enregistrer</button>
+        <button type="button" class="btn alt" id="copy">Copier</button>
+        <span class="toast" id="toast" role="status"></span>
+      </div>
+    </div>
     <div class="card">
       <div class="field">
         <label for="assurance">Assurance</label>
@@ -81,28 +106,6 @@
       </div>
     </div>
 
-    <div class="card" aria-live="polite" aria-label="Résultat">
-      <p class="err" id="err" hidden></p>
-      <div class="split">
-        <div class="part ins">
-          <span class="who">Part assurance</span>
-          <span class="amount" id="r-ins">6 400</span>
-          <span class="pct" id="r-ins-pct">80 %</span>
-        </div>
-        <div class="part pat">
-          <span class="who">Part adhérent</span>
-          <span class="amount" id="r-pat">1 600</span>
-          <span class="pct" id="r-pat-pct">20 %</span>
-        </div>
-      </div>
-      <div class="bar" aria-hidden="true"><span id="bar" style="width:80%"></span></div>
-      <p class="detail" id="detail"></p>
-      <div class="actions">
-        <button type="button" class="btn" id="save">Enregistrer</button>
-        <button type="button" class="btn ghost" id="copy">Copier</button>
-        <span class="toast" id="toast" role="status"></span>
-      </div>
-    </div>
   </section>
 
   <!-- ÉCRAN HISTORIQUE -->
@@ -156,7 +159,7 @@
           <div class="input-row text"><input id="ins-rate" inputmode="decimal" autocomplete="off" placeholder="80" required><span class="unit">%</span></div>
         </div>
         <p class="err" id="ins-err" hidden></p>
-        <button type="submit" class="btn">Ajouter</button>
+        <button type="submit" class="btn primary">Ajouter</button>
       </form>
     </div>
 

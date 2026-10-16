@@ -1,6 +1,6 @@
 // Service worker : garde l'application en cache pour qu'elle marche sans internet.
 // Change VERSION à chaque mise à jour des fichiers pour que les téléphones la récupèrent.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'calculette-' + VERSION;
 const FONT_CACHE = 'calculette-fonts';
 const SHELL = [

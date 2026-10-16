@@ -123,10 +123,11 @@
       b.setAttribute('aria-pressed', String(!bad && c.montant === Number(b.dataset.amount)));
     });
     if (bad) {
-      $('r-ins').textContent = '—'; $('r-pat').textContent = '—';
+      $('r-ins').textContent = '—'; $('r-pat').textContent = '—'; $('expr').textContent = '';
       $('detail').textContent = '';
       return;
     }
+    $('expr').textContent = fmt.format(c.montant) + ' FCFA × ' + fmtPct.format(c.taux) + ' %';
     $('r-ins').textContent = fmt.format(c.partAssurance);
     $('r-pat').textContent = fmt.format(c.partAdherent);
     $('r-ins-pct').textContent = fmtPct.format(c.taux) + ' %';
@@ -323,6 +324,30 @@
     assurances = assurances.filter(function (a) { return a.id !== id; });
     store(KEY_INS, assurances);
     renderInsurers();
+  });
+
+  // ---------- Thème : automatique (suit le téléphone), clair ou sombre ----------
+  var KEY_THEME = 'sandra.theme';
+  var THEMES = ['auto', 'light', 'dark'];
+  var THEME_LABEL = { auto: 'automatique', light: 'clair', dark: 'sombre' };
+  function applyTheme(t) {
+    if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+    $('theme').setAttribute('aria-label', 'Thème : ' + THEME_LABEL[t]);
+    $('theme').title = 'Thème : ' + THEME_LABEL[t];
+    var dark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+      if (t === 'auto') m.setAttribute('content', m.media.indexOf('dark') >= 0 ? '#121316' : '#e6e8ec');
+      else m.setAttribute('content', dark ? '#121316' : '#e6e8ec');
+    });
+  }
+  var theme = load(KEY_THEME, 'auto');
+  if (THEMES.indexOf(theme) < 0) theme = 'auto';
+  applyTheme(theme);
+  $('theme').addEventListener('click', function () {
+    theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    store(KEY_THEME, theme); applyTheme(theme);
+    toast('Thème ' + THEME_LABEL[theme]);
   });
 
   // ---------- Installation (PWA) ----------
